@@ -17,7 +17,8 @@ import {
   Search,
   Edit,
   Filter,
-  Calendar
+  Calendar,
+  Code // Add the missing Code import here
 } from "lucide-react";
 
 // Mock challenge data
