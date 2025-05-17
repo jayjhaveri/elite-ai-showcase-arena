@@ -1,227 +1,381 @@
 
-import React from "react";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Trophy, 
-  Star, 
-  Calendar, 
-  FileText, 
-  ArrowRight, 
-  Bell 
-} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from '@/hooks/useAuth';
+import { useUserSubmissions } from '@/hooks/useSubmissions';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Award, 
+  ChevronRight, 
+  ClipboardList, 
+  Clock, 
+  Code, 
+  FileCode, 
+  Rocket,
+  Star,
+  ThumbsUp, 
+  Trophy,
+  X
+} from 'lucide-react';
 
 const Dashboard = () => {
-  return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4">
-      <div className="container mx-auto max-w-6xl">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Builder Dashboard</h1>
-            <p className="text-gray-600">Track your progress and manage your challenge submissions</p>
-          </div>
-          <Button className="mt-4 md:mt-0">
-            <Link to="/challenges">Explore New Challenges</Link>
-          </Button>
-        </div>
+  const { user } = useAuth();
+  const { data: submissions, isLoading } = useUserSubmissions();
+  const [activeTab, setActiveTab] = useState("overview");
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main content - Active challenges and submissions */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Active Challenges */}
+  if (!user) {
+    return (
+      <div className="container mx-auto max-w-6xl py-16 px-4 text-center">
+        <h1 className="text-3xl font-bold mb-4">Authentication Required</h1>
+        <p className="mb-8">Please sign in to view your dashboard.</p>
+        <Link to="/auth">
+          <Button>Sign In</Button>
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto max-w-6xl px-4 py-8">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold mb-1">Developer Dashboard</h1>
+          <p className="text-gray-600">Track your challenges, submissions, and achievements</p>
+        </div>
+        <div className="mt-4 md:mt-0">
+          <Link to="/challenges">
+            <Button className="flex items-center">
+              <Rocket className="mr-2 h-4 w-4" />
+              Explore Challenges
+            </Button>
+          </Link>
+        </div>
+      </div>
+
+      <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full md:w-auto grid-cols-3 h-auto p-1">
+          <TabsTrigger value="overview" className="py-2">Overview</TabsTrigger>
+          <TabsTrigger value="submissions" className="py-2">Submissions</TabsTrigger>
+          <TabsTrigger value="achievements" className="py-2">Achievements</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-8">
+          {/* Welcome Card */}
+          <Card>
+            <CardContent className="p-6 flex flex-col md:flex-row md:items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-semibold mb-2">Welcome, {user.user_metadata?.name || user.email}</h2>
+                <p className="text-gray-600 max-w-2xl">
+                  Your hub for all EliteBuilders activities. Explore new challenges, track your submissions, and grow your skills.
+                </p>
+              </div>
+              <div className="mt-4 md:mt-0">
+                <Badge variant="outline" className="bg-purple-100 text-purple-800 border-purple-200 py-1.5 px-3 text-sm">
+                  Builder
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Stats Overview */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card>
-              <CardHeader className="border-b">
-                <CardTitle>Active Challenges</CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6">
-                {[1, 2].map((index) => (
-                  <div key={index} className="mb-6 last:mb-0 border-b last:border-0 pb-6 last:pb-0">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between">
-                      <div className="mb-4 md:mb-0">
-                        <div className="flex items-center">
-                          <h3 className="font-semibold mr-2">
-                            {["AI Photo Editor", "Code Assistant"][index - 1]}
-                          </h3>
-                          <Badge variant="outline" className="bg-yellow-50 text-yellow-800 border-yellow-300">
-                            In Progress
-                          </Badge>
+              <CardContent className="p-6">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">Active Submissions</p>
+                    <h3 className="text-3xl font-bold">{isLoading ? '-' : submissions?.length || 0}</h3>
+                  </div>
+                  <div className="bg-blue-100 p-2 rounded-full">
+                    <ClipboardList className="h-5 w-5 text-blue-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">Completed Challenges</p>
+                    <h3 className="text-3xl font-bold">0</h3>
+                  </div>
+                  <div className="bg-green-100 p-2 rounded-full">
+                    <ThumbsUp className="h-5 w-5 text-green-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">Total Earned</p>
+                    <h3 className="text-3xl font-bold">$0</h3>
+                  </div>
+                  <div className="bg-yellow-100 p-2 rounded-full">
+                    <Trophy className="h-5 w-5 text-yellow-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">Achievements</p>
+                    <h3 className="text-3xl font-bold">0</h3>
+                  </div>
+                  <div className="bg-purple-100 p-2 rounded-full">
+                    <Award className="h-5 w-5 text-purple-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Recent Submissions */}
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">Recent Submissions</h2>
+              <Button variant="ghost" size="sm" onClick={() => setActiveTab("submissions")} className="text-gray-500 hover:text-gray-700">
+                View All <ChevronRight className="ml-1 h-4 w-4" />
+              </Button>
+            </div>
+            
+            {isLoading ? (
+              <div className="space-y-4">
+                {[...Array(2)].map((_, i) => (
+                  <Card key={i}>
+                    <CardContent className="p-4">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between">
+                        <div className="space-y-2">
+                          <Skeleton className="h-5 w-40" />
+                          <Skeleton className="h-4 w-60" />
                         </div>
-                        <p className="text-sm text-gray-600 mt-1">
-                          Sponsored by {["ImageTech AI", "CodeGenius"][index - 1]}
-                        </p>
+                        <div className="mt-3 md:mt-0 flex gap-3">
+                          <Skeleton className="h-9 w-24" />
+                        </div>
                       </div>
-                      <div className="flex items-center space-x-4">
-                        <div className="text-sm text-gray-600 flex items-center">
-                          <Calendar className="h-4 w-4 mr-1" />
-                          <span>Due: {["May 30", "June 15"][index - 1]}</span>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : submissions && submissions.length > 0 ? (
+              <div className="space-y-4">
+                {submissions.slice(0, 3).map((submission) => (
+                  <Card key={submission.id}>
+                    <CardContent className="p-4">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between">
+                        <div>
+                          <h3 className="font-medium">
+                            {submission.challenges?.title || 'Unknown Challenge'}
+                          </h3>
+                          <p className="text-sm text-gray-500">
+                            Submitted on {new Date(submission.submission_time || submission.created_at).toLocaleDateString()}
+                          </p>
                         </div>
-                        <Link to={`/challenges/${index}`}>
-                          <Button variant="outline" size="sm">
-                            Continue
+                        <div className="mt-3 md:mt-0 flex gap-3">
+                          <Link to={`/challenges/${submission.challenge_id}`}>
+                            <Button variant="outline" size="sm">View Challenge</Button>
+                          </Link>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <div className="mb-3">
+                    <FileCode className="h-10 w-10 text-gray-400 mx-auto" />
+                  </div>
+                  <h3 className="text-lg font-medium mb-1">No submissions yet</h3>
+                  <p className="text-gray-500 mb-4">
+                    You haven't submitted any challenges yet. Start exploring challenges to participate.
+                  </p>
+                  <Link to="/challenges">
+                    <Button>Explore Challenges</Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Recommended Challenges */}
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">Recommended for You</h2>
+              <Link to="/challenges">
+                <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700">
+                  View All <ChevronRight className="ml-1 h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start mb-3">
+                    <Badge>New</Badge>
+                    <Star className="h-5 w-5 text-yellow-500" />
+                  </div>
+                  <h3 className="font-medium mb-1">Explore Challenges</h3>
+                  <p className="text-sm text-gray-500 mb-4">
+                    Check out the latest challenges from top companies.
+                  </p>
+                  <Link to="/challenges">
+                    <Button size="sm" variant="outline" className="w-full">Browse Now</Button>
+                  </Link>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start mb-3">
+                    <Badge variant="outline">Recommended</Badge>
+                    <Code className="h-5 w-5 text-blue-500" />
+                  </div>
+                  <h3 className="font-medium mb-1">Complete Your Profile</h3>
+                  <p className="text-sm text-gray-500 mb-4">
+                    Add more details to your profile to get personalized recommendations.
+                  </p>
+                  <Link to="/profile">
+                    <Button size="sm" variant="outline" className="w-full">Go to Profile</Button>
+                  </Link>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start mb-3">
+                    <Badge variant="outline">Popular</Badge>
+                    <Clock className="h-5 w-5 text-green-500" />
+                  </div>
+                  <h3 className="font-medium mb-1">Check Leaderboard</h3>
+                  <p className="text-sm text-gray-500 mb-4">
+                    See how you rank against other developers on the platform.
+                  </p>
+                  <Link to="/leaderboard">
+                    <Button size="sm" variant="outline" className="w-full">View Leaderboard</Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="submissions" className="space-y-6">
+          <h2 className="text-2xl font-semibold mb-4">Your Submissions</h2>
+          
+          {isLoading ? (
+            <div className="space-y-4">
+              {[...Array(3)].map((_, i) => (
+                <Card key={i}>
+                  <CardContent className="p-4">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between">
+                      <div className="space-y-2">
+                        <Skeleton className="h-5 w-40" />
+                        <Skeleton className="h-4 w-60" />
+                        <Skeleton className="h-4 w-36" />
+                      </div>
+                      <div className="mt-3 md:mt-0 flex gap-3">
+                        <Skeleton className="h-9 w-24" />
+                        <Skeleton className="h-9 w-24" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : submissions && submissions.length > 0 ? (
+            <div className="space-y-4">
+              {submissions.map((submission) => (
+                <Card key={submission.id}>
+                  <CardContent className="p-6">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between">
+                      <div>
+                        <h3 className="font-medium text-lg mb-1">
+                          {submission.challenges?.title || 'Unknown Challenge'}
+                        </h3>
+                        <div className="text-sm text-gray-500 mb-2">
+                          Submitted on {new Date(submission.submission_time || submission.created_at).toLocaleDateString()}
+                        </div>
+                        <div className="flex gap-2">
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 hover:bg-blue-100">
+                            {submission.test_passed === null ? 'Pending Review' : 
+                             submission.test_passed ? 'Tests Passed' : 'Tests Failed'}
+                          </Badge>
+                          {submission.provisional_score !== null && (
+                            <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-100">
+                              Score: {submission.provisional_score}/100
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      <div className="mt-4 md:mt-0 flex flex-col sm:flex-row gap-3">
+                        {submission.github_repo_link && (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => window.open(submission.github_repo_link, '_blank')}
+                          >
+                            View Code
                           </Button>
+                        )}
+                        <Link to={`/challenges/${submission.challenge_id}`}>
+                          <Button size="sm">View Challenge</Button>
                         </Link>
                       </div>
                     </div>
-                  </div>
-                ))}
-
-                {/* No active challenges state */}
-                {false && (
-                  <div className="text-center py-8">
-                    <p className="text-gray-500 mb-4">You don't have any active challenges yet.</p>
-                    <Button>
-                      <Link to="/challenges">Browse Challenges</Link>
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Recent Submissions */}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
             <Card>
-              <CardHeader className="border-b">
-                <CardTitle>Recent Submissions</CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <div className="mb-6 border-b pb-6">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between">
-                    <div className="mb-4 md:mb-0">
-                      <div className="flex items-center">
-                        <h3 className="font-semibold mr-2">ML Data Visualizer</h3>
-                        <Badge className="bg-green-100 text-green-800 border-green-300">
-                          Completed
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-gray-600 mt-1">
-                        Submitted on April 28, 2025
-                      </p>
-                    </div>
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <Link to="/challenges/3">
-                        <Button variant="outline" size="sm">
-                          View Details
-                        </Button>
-                      </Link>
-                      <Button variant="secondary" size="sm">
-                        View Feedback
-                      </Button>
-                    </div>
-                  </div>
+              <CardContent className="p-10 text-center">
+                <div className="mb-3">
+                  <X className="h-12 w-12 text-gray-400 mx-auto" />
                 </div>
-
-                <div className="text-right">
-                  <Button variant="ghost" size="sm" className="text-purple-800">
-                    View All Submissions <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
+                <h3 className="text-xl font-medium mb-2">No submissions found</h3>
+                <p className="text-gray-500 mb-6 max-w-md mx-auto">
+                  You haven't submitted any challenges yet. Browse available challenges and start submitting your work.
+                </p>
+                <Link to="/challenges">
+                  <Button>Browse Challenges</Button>
+                </Link>
               </CardContent>
             </Card>
-          </div>
+          )}
+        </TabsContent>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Profile Summary */}
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex flex-col items-center">
-                  <div className="w-20 h-20 bg-gray-200 rounded-full mb-4"></div>
-                  <h3 className="font-semibold text-lg">Alex Chen</h3>
-                  <p className="text-gray-600 text-sm mb-4">AI Developer</p>
-                  <Link to="/profile">
-                    <Button variant="outline" size="sm">
-                      View Profile
-                    </Button>
-                  </Link>
-                </div>
-
-                <div className="border-t border-gray-200 mt-6 pt-6">
-                  <h4 className="font-medium text-sm mb-4">Your Stats</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center p-3 bg-gray-50 rounded-lg">
-                      <div className="text-lg font-semibold">3</div>
-                      <div className="text-xs text-gray-600">Challenges</div>
-                    </div>
-                    <div className="text-center p-3 bg-gray-50 rounded-lg">
-                      <div className="text-lg font-semibold">2</div>
-                      <div className="text-xs text-gray-600">Badges</div>
-                    </div>
-                    <div className="text-center p-3 bg-gray-50 rounded-lg">
-                      <div className="text-lg font-semibold">156</div>
-                      <div className="text-xs text-gray-600">Career Score</div>
-                    </div>
-                    <div className="text-center p-3 bg-gray-50 rounded-lg">
-                      <div className="text-lg font-semibold">Top 15%</div>
-                      <div className="text-xs text-gray-600">Ranking</div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Badges */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Recent Badges</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex justify-around">
-                  <div className="flex flex-col items-center">
-                    <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-2">
-                      <Trophy className="h-6 w-6 text-purple-700" />
-                    </div>
-                    <span className="text-xs">Top 10%</span>
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-2">
-                      <Star className="h-6 w-6 text-blue-700" />
-                    </div>
-                    <span className="text-xs">Sponsor Pick</span>
-                  </div>
-                </div>
-                <div className="mt-4 text-center">
-                  <Link to="/profile" className="text-xs text-purple-800 hover:underline">
-                    View All Badges
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Notifications */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Recent Notifications</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <div className="bg-blue-100 p-1.5 rounded-full text-blue-700">
-                      <Bell className="h-3 w-3" />
-                    </div>
-                    <div>
-                      <p className="text-sm">Your submission for "ML Data Visualizer" has been reviewed.</p>
-                      <p className="text-xs text-gray-500 mt-1">2 days ago</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="bg-purple-100 p-1.5 rounded-full text-purple-700">
-                      <Bell className="h-3 w-3" />
-                    </div>
-                    <div>
-                      <p className="text-sm">You've earned the "Top 10%" badge for your AI Photo Editor solution.</p>
-                      <p className="text-xs text-gray-500 mt-1">1 week ago</p>
-                    </div>
-                  </div>
-                </div>
-                <Button variant="ghost" size="sm" className="w-full mt-4 text-purple-800">
-                  View All
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
+        <TabsContent value="achievements" className="space-y-6">
+          <h2 className="text-2xl font-semibold mb-4">Your Achievements</h2>
+          
+          <Card>
+            <CardContent className="p-10 text-center">
+              <div className="mb-3">
+                <Award className="h-12 w-12 text-purple-500 mx-auto" />
+              </div>
+              <h3 className="text-xl font-medium mb-2">No achievements yet</h3>
+              <p className="text-gray-500 mb-6 max-w-md mx-auto">
+                Complete challenges and participate in competitions to earn achievements and badges.
+              </p>
+              <Link to="/challenges">
+                <Button>Browse Challenges</Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

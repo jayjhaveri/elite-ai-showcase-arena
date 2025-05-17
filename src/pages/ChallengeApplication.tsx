@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,63 +9,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, FileText, Code, Video, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-// Mock data for challenges
-const mockChallenges = [
-  {
-    id: "1",
-    title: "AI Photo Editor",
-    description: "Create an AI-powered photo editing tool with creative filters and enhancements.",
-    sponsor: "ImageTech AI",
-    deadline: "May 30, 2025",
-    prizeAmount: "$2,500",
-    requirements: [
-      "Create an intuitive UI for photo editing",
-      "Implement at least 5 AI-powered filters or effects",
-      "Include features for automatic enhancement and object removal",
-      "Support common image formats (JPG, PNG, etc.)",
-      "Provide documentation on the AI models used",
-    ],
-  },
-  {
-    id: "2",
-    title: "Intelligent Code Assistant",
-    description: "Build an intelligent coding assistant that helps developers write better code.",
-    sponsor: "CodeGenius",
-    deadline: "June 15, 2025",
-    prizeAmount: "$3,500",
-    requirements: [
-      "Develop a coding assistant that integrates with VS Code",
-      "Implement syntax highlighting and error detection",
-      "Create AI-powered code suggestions and completion",
-      "Add documentation generation features",
-      "Support at least 3 programming languages",
-    ],
-  },
-  {
-    id: "3",
-    title: "ML Data Visualizer",
-    description: "Develop interactive visualizations for complex machine learning datasets.",
-    sponsor: "DataViz Corp",
-    deadline: "June 28, 2025",
-    prizeAmount: "$2,000",
-    requirements: [
-      "Create intuitive visualizations for multi-dimensional data",
-      "Implement interactive filtering and sorting",
-      "Support various data formats (CSV, JSON, etc.)",
-      "Add export functionality for images and reports",
-      "Provide customization options for colors and layouts",
-    ],
-  },
-];
+import { useAuth } from "@/hooks/useAuth";
+import { useChallengeById } from "@/hooks/useChallenges";
+import { useCreateSubmission } from "@/hooks/useSubmissions";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const ChallengeApplication = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   
-  // Find the challenge with the matching ID
-  const challenge = mockChallenges.find((c) => c.id === id);
+  // Fetch challenge details
+  const { data: challenge, isLoading: challengeLoading } = useChallengeById(id);
+  const createSubmission = useCreateSubmission();
   
   // Form state
   const [formState, setFormState] = useState({
@@ -78,6 +35,18 @@ const ChallengeApplication = () => {
       demoVideo: false
     }
   });
+
+  // Check if user is authenticated
+  useEffect(() => {
+    if (!user && !challengeLoading) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to submit an application",
+        variant: "destructive"
+      });
+      navigate('/auth');
+    }
+  }, [user, challengeLoading, toast, navigate]);
 
   // Handle form changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -105,21 +74,52 @@ const ChallengeApplication = () => {
   };
 
   // Submit application
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    toast({
-      title: "Application Submitted",
-      description: "Your challenge application has been submitted successfully!",
-    });
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to submit an application",
+        variant: "destructive"
+      });
+      navigate('/auth');
+      return;
+    }
     
-    // Redirect to dashboard after submission
-    setTimeout(() => {
-      navigate('/dashboard');
-    }, 1500);
+    if (!id) {
+      toast({
+        title: "Error",
+        description: "Challenge ID is missing",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      await createSubmission.mutateAsync({
+        challenge_id: id,
+        github_repo_link: formState.githubRepo,
+        pitch_deck_link: formState.fileUploads.presentation ? "https://example.com/pitch-deck" : null,
+        demo_video_link: formState.fileUploads.demoVideo ? "https://example.com/demo-video" : null,
+        ai_feedback: formState.description, // Using description as ai_feedback for now
+      });
+      
+      // Redirect to dashboard after submission
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1500);
+    } catch (error) {
+      console.error("Error submitting application:", error);
+      // Error toast is handled in the useMutation hook
+    }
   };
   
   // Handle case where challenge is not found
+  if (challengeLoading) {
+    return <LoadingSkeleton />;
+  }
+  
   if (!challenge) {
     return (
       <div className="container mx-auto max-w-6xl py-16 px-4 text-center">
@@ -151,16 +151,24 @@ const ChallengeApplication = () => {
             <div className="flex flex-col md:flex-row justify-between">
               <div>
                 <h2 className="text-xl font-semibold mb-1">{challenge.title}</h2>
-                <p className="text-gray-600 text-sm mb-2">Sponsored by {challenge.sponsor}</p>
+                <p className="text-gray-600 text-sm mb-2">
+                  Sponsored by {challenge.sponsors?.company || challenge.sponsors?.name || 'Unknown Sponsor'}
+                </p>
               </div>
               <div>
-                <Badge className="bg-purple-100 text-purple-800">
-                  Deadline: {challenge.deadline}
-                </Badge>
+                {challenge.deadline && (
+                  <Badge className="bg-purple-100 text-purple-800">
+                    Deadline: {new Date(challenge.deadline).toLocaleDateString('en-US', {
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
+                  </Badge>
+                )}
               </div>
             </div>
             <div className="mt-4 text-sm">
-              <p>{challenge.description}</p>
+              <p>{challenge.description || 'No description available.'}</p>
             </div>
           </CardContent>
         </Card>
@@ -301,8 +309,12 @@ const ChallengeApplication = () => {
                 <Button type="button" variant="outline" onClick={() => navigate(`/challenges/${id}`)}>
                   Save as Draft
                 </Button>
-                <Button type="submit" className="sm:w-auto w-full">
-                  Submit Application
+                <Button 
+                  type="submit" 
+                  className="sm:w-auto w-full" 
+                  disabled={createSubmission.isPending}
+                >
+                  {createSubmission.isPending ? "Submitting..." : "Submit Application"}
                 </Button>
               </div>
             </CardContent>
@@ -312,5 +324,51 @@ const ChallengeApplication = () => {
     </div>
   );
 };
+
+const LoadingSkeleton = () => (
+  <div className="min-h-screen bg-gray-50 py-10 px-4">
+    <div className="container mx-auto max-w-4xl">
+      <div className="mb-6">
+        <Skeleton className="h-4 w-40 mb-4" />
+        <Skeleton className="h-10 w-72 mb-2" />
+        <Skeleton className="h-5 w-96" />
+      </div>
+      
+      <Card className="mb-8">
+        <CardContent className="p-6">
+          <div className="flex flex-col md:flex-row justify-between">
+            <div>
+              <Skeleton className="h-7 w-64 mb-1" />
+              <Skeleton className="h-5 w-40 mb-2" />
+            </div>
+            <Skeleton className="h-6 w-32" />
+          </div>
+          <div className="mt-4">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full mt-1" />
+            <Skeleton className="h-4 w-3/4 mt-1" />
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Card className="mb-8">
+        <CardHeader>
+          <Skeleton className="h-7 w-48" />
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <Skeleton className="h-5 w-32" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-4 w-48" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-5 w-40" />
+            <Skeleton className="h-24 w-full" />
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  </div>
+);
 
 export default ChallengeApplication;
