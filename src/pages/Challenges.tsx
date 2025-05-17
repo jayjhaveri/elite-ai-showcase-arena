@@ -172,12 +172,12 @@ const Challenges = () => {
           </div>
 
           <div className="flex gap-2 flex-shrink-0">
-            <Select value={industryFilter} onValueChange={setIndustryFilter}>
+            <Select value={industryFilter ?? "all"} onValueChange={(val) => setIndustryFilter(val === "all" ? undefined : val)}>
               <SelectTrigger className="w-[160px]">
                 <SelectValue placeholder="Industry" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Industries</SelectItem>
+                <SelectItem value="all">All Industries</SelectItem>
                 {uniqueIndustries.map(industry => (
                   <SelectItem key={industry} value={industry}>{industry}</SelectItem>
                 ))}
@@ -185,18 +185,16 @@ const Challenges = () => {
             </Select>
 
             <Select
-              value={skillLevelFilter ?? ""}
-              onValueChange={(value) =>
-                setSkillLevelFilter(
-                  value === "" ? undefined : (value as SkillLevel)
-                )
+              value={skillLevelFilter ?? "any"}
+              onValueChange={(val) =>
+                setSkillLevelFilter(val === "any" ? undefined : (val as SkillLevel))
               }
             >
               <SelectTrigger className="w-[160px]">
                 <SelectValue placeholder="Skill Level" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any Level</SelectItem>
+                <SelectItem value="any">Any Level</SelectItem>
                 <SelectItem value="beginner">Beginner</SelectItem>
                 <SelectItem value="intermediate">Intermediate</SelectItem>
                 <SelectItem value="advanced">Advanced</SelectItem>
