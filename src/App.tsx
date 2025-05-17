@@ -16,6 +16,7 @@ import Leaderboard from "./pages/Leaderboard";
 import ChallengeApplication from "./pages/ChallengeApplication";
 import SponsorDashboard from "./pages/SponsorDashboard";
 import Auth from "./pages/Auth";
+import SponsorAuth from "./pages/SponsorAuth";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,7 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
+              <Route path="/sponsor-auth" element={<SponsorAuth />} /> {/* ADD THIS ROUTE */}
             </Routes>
           </Layout>
         </AuthProvider>

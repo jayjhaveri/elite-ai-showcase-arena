@@ -64,7 +64,7 @@ const ChallengeCard = ({ challenge }: { challenge: any }) => {
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent className="p-4 pt-2">
         <p className="text-gray-700 line-clamp-2 mb-4">
           {challenge.description || 'No description provided.'}
@@ -82,7 +82,7 @@ const ChallengeCard = ({ challenge }: { challenge: any }) => {
           </div>
         </div>
       </CardContent>
-      
+
       <CardFooter className="p-4 pt-0 flex justify-between items-center">
         <div className="flex items-center">
           <FileCode className="h-4 w-4 text-gray-500 mr-2" />
@@ -124,15 +124,15 @@ const Challenges = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [industryFilter, setIndustryFilter] = useState<string | undefined>(undefined);
   const [skillLevelFilter, setSkillLevelFilter] = useState<SkillLevel | undefined>(undefined);
-  
+
   const { data: challenges, isLoading, error } = useChallenges({
     industry: industryFilter,
     skill_level: skillLevelFilter,
   });
-  
+
   const filteredChallenges = challenges?.filter((challenge) => {
     return challenge.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-           (challenge.description && challenge.description.toLowerCase().includes(searchQuery.toLowerCase()));
+      (challenge.description && challenge.description.toLowerCase().includes(searchQuery.toLowerCase()));
   }) || [];
 
   // Extract unique industries for filter
@@ -170,7 +170,7 @@ const Challenges = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          
+
           <div className="flex gap-2 flex-shrink-0">
             <Select value={industryFilter} onValueChange={setIndustryFilter}>
               <SelectTrigger className="w-[160px]">
@@ -184,7 +184,14 @@ const Challenges = () => {
               </SelectContent>
             </Select>
 
-            <Select value={skillLevelFilter} onValueChange={setSkillLevelFilter}>
+            <Select
+              value={skillLevelFilter ?? ""}
+              onValueChange={(value) =>
+                setSkillLevelFilter(
+                  value === "" ? undefined : (value as SkillLevel)
+                )
+              }
+            >
               <SelectTrigger className="w-[160px]">
                 <SelectValue placeholder="Skill Level" />
               </SelectTrigger>
@@ -195,7 +202,7 @@ const Challenges = () => {
                 <SelectItem value="advanced">Advanced</SelectItem>
               </SelectContent>
             </Select>
-            
+
             {hasActiveFilters && (
               <Button variant="ghost" size="icon" onClick={clearFilters} className="px-2">
                 <X className="h-4 w-4" />

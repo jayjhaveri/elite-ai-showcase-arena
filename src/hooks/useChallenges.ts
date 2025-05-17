@@ -1,14 +1,17 @@
-
+// src/hooks/useChallenges.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast'; // Assuming this is for shadcn/ui toast
 import { Database } from '@/integrations/supabase/types';
 
 export type Challenge = Database['public']['Tables']['challenges']['Row'];
+type ChallengeInsert = Database['public']['Tables']['challenges']['Insert'];
+type ChallengeUpdate = Database['public']['Tables']['challenges']['Update'];
 
-export const useChallenges = (filters?: { 
-  industry?: string; 
-  skill_level?: Database['public']['Enums']['skill_level_enum']; 
+
+export const useChallenges = (filters?: {
+  industry?: string;
+  skill_level?: Database['public']['Enums']['skill_level_enum'];
 }) => {
   return useQuery({
     queryKey: ['challenges', filters],
@@ -23,17 +26,17 @@ export const useChallenges = (filters?: {
             website
           )
         `);
-      
+
       if (filters?.industry) {
         query = query.eq('industry', filters.industry);
       }
-      
+
       if (filters?.skill_level) {
         query = query.eq('skill_level', filters.skill_level);
       }
-      
+
       const { data, error } = await query;
-      
+
       if (error) {
         console.error('Error fetching challenges:', error);
         toast({
@@ -43,7 +46,7 @@ export const useChallenges = (filters?: {
         });
         throw error;
       }
-      
+
       return data || [];
     },
   });
@@ -54,7 +57,7 @@ export const useChallengeById = (id: string | undefined) => {
     queryKey: ['challenge', id],
     queryFn: async () => {
       if (!id) return null;
-      
+
       const { data, error } = await supabase
         .from('challenges')
         .select(`
@@ -67,7 +70,7 @@ export const useChallengeById = (id: string | undefined) => {
         `)
         .eq('id', id)
         .single();
-      
+
       if (error) {
         console.error('Error fetching challenge:', error);
         toast({
@@ -77,7 +80,7 @@ export const useChallengeById = (id: string | undefined) => {
         });
         throw error;
       }
-      
+
       return data;
     },
     enabled: !!id,
@@ -86,15 +89,15 @@ export const useChallengeById = (id: string | undefined) => {
 
 export const useCreateChallenge = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async (newChallenge: Omit<Challenge, 'id' | 'created_at' | 'updated_at'>) => {
+    mutationFn: async (newChallenge: ChallengeInsert) => { // <--- CORRECTED TYPE HERE
       const { data, error } = await supabase
         .from('challenges')
-        .insert([newChallenge])
+        .insert([newChallenge]) // Supabase insert often expects an array
         .select()
-        .single();
-      
+        .single(); // Assuming you want the created record back
+
       if (error) {
         console.error('Error creating challenge:', error);
         toast({
@@ -104,31 +107,36 @@ export const useCreateChallenge = () => {
         });
         throw error;
       }
-      
+
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => { // data is the newly created challenge if .select().single() is used
       toast({
         title: "Challenge created",
-        description: "Your challenge has been created successfully.",
+        description: `Challenge "${data?.title || 'New Challenge'}" has been created successfully.`,
       });
       queryClient.invalidateQueries({ queryKey: ['challenges'] });
     },
+    // Optional: Add onError for more specific UI feedback if needed
+    // onError: (error) => {
+    //   // The toast in mutationFn already handles this, but you could add more here
+    //   console.error("Mutation error in useCreateChallenge:", error);
+    // }
   });
 };
 
 export const useUpdateChallenge = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async ({ id, challenge }: { id: string; challenge: Partial<Challenge> }) => {
+    mutationFn: async ({ id, challenge }: { id: string; challenge: ChallengeUpdate }) => { // <--- Consider using ChallengeUpdate for stricter typing
       const { data, error } = await supabase
         .from('challenges')
         .update(challenge)
         .eq('id', id)
         .select()
-        .single();
-      
+        .single(); // Assuming you want the updated record back
+
       if (error) {
         console.error('Error updating challenge:', error);
         toast({
@@ -138,13 +146,13 @@ export const useUpdateChallenge = () => {
         });
         throw error;
       }
-      
+
       return data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (data, variables) => { // data is the updated challenge
       toast({
         title: "Challenge updated",
-        description: "Your challenge has been updated successfully.",
+        description: `Challenge "${data?.title || 'The challenge'}" has been updated successfully.`,
       });
       queryClient.invalidateQueries({ queryKey: ['challenges'] });
       queryClient.invalidateQueries({ queryKey: ['challenge', variables.id] });
