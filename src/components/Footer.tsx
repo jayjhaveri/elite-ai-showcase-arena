@@ -27,16 +27,16 @@ const Footer = () => {
             <h4 className="text-white text-base font-medium mb-4">Explore</h4>
             <ul className="space-y-2 text-sm">
               <li><Link to="/challenges" className="hover:text-white transition-colors">Challenges</Link></li>
-              <li><a href="#" onClick={(e) => {e.preventDefault(); showComingSoon();}} className="hover:text-white transition-colors">Leaderboard</a></li>
-              <li><a href="#" onClick={(e) => {e.preventDefault(); showComingSoon();}} className="hover:text-white transition-colors">Builder Profiles</a></li>
+              <li><Link to="/leaderboard" className="hover:text-white transition-colors">Leaderboard</Link></li>
+              <li><Link to="/profile" className="hover:text-white transition-colors">Builder Profiles</Link></li>
             </ul>
           </div>
           <div>
             <h4 className="text-white text-base font-medium mb-4">For Sponsors</h4>
             <ul className="space-y-2 text-sm">
+              <li><Link to="/sponsor" className="hover:text-white transition-colors">Sponsor Dashboard</Link></li>
               <li><a href="#" onClick={(e) => {e.preventDefault(); showComingSoon();}} className="hover:text-white transition-colors">Post a Challenge</a></li>
               <li><a href="#" onClick={(e) => {e.preventDefault(); showComingSoon();}} className="hover:text-white transition-colors">View Submissions</a></li>
-              <li><a href="#" onClick={(e) => {e.preventDefault(); showComingSoon();}} className="hover:text-white transition-colors">Sponsor Dashboard</a></li>
             </ul>
           </div>
           <div>

@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Menu, X } from "lucide-react";
+import { Menu, X, User, Trophy, LayoutDashboard, Briefcase } from "lucide-react";
 
 const Navbar = () => {
   const { toast } = useToast();
@@ -35,20 +35,15 @@ const Navbar = () => {
             <Link to="/challenges" className={`${isActive("/challenges")} transition-colors`}>
               Challenges
             </Link>
-            <a 
-              href="#" 
-              onClick={(e) => { e.preventDefault(); showComingSoon(); }}
-              className="text-gray-700 hover:text-purple-800 transition-colors"
-            >
+            <Link to="/leaderboard" className={`${isActive("/leaderboard")} transition-colors`}>
               Leaderboard
-            </a>
-            <a 
-              href="#" 
-              onClick={(e) => { e.preventDefault(); showComingSoon(); }}
-              className="text-gray-700 hover:text-purple-800 transition-colors"
-            >
+            </Link>
+            <Link to="/sponsor" className={`${isActive("/sponsor")} transition-colors`}>
               For Sponsors
-            </a>
+            </Link>
+            <Link to="/dashboard" className={`${isActive("/dashboard")} transition-colors`}>
+              Dashboard
+            </Link>
           </nav>
 
           {/* Auth Buttons */}
@@ -96,20 +91,27 @@ const Navbar = () => {
             >
               Challenges
             </Link>
-            <a 
-              href="#" 
+            <Link 
+              to="/leaderboard" 
               className="block py-2"
-              onClick={(e) => { e.preventDefault(); showComingSoon(); setMobileMenuOpen(false); }}
+              onClick={() => setMobileMenuOpen(false)}
             >
               Leaderboard
-            </a>
-            <a 
-              href="#" 
+            </Link>
+            <Link 
+              to="/sponsor" 
               className="block py-2"
-              onClick={(e) => { e.preventDefault(); showComingSoon(); setMobileMenuOpen(false); }}
+              onClick={() => setMobileMenuOpen(false)}
             >
               For Sponsors
-            </a>
+            </Link>
+            <Link 
+              to="/dashboard" 
+              className="block py-2"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Dashboard
+            </Link>
             <div className="pt-2 space-y-3">
               <Button 
                 variant="outline" 

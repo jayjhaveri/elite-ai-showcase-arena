@@ -9,6 +9,11 @@ import Home from "./pages/Home";
 import Challenges from "./pages/Challenges";
 import ChallengeDetails from "./pages/ChallengeDetails";
 import NotFound from "./pages/NotFound";
+import Dashboard from "./pages/Dashboard";
+import Profile from "./pages/Profile";
+import Leaderboard from "./pages/Leaderboard";
+import ChallengeApplication from "./pages/ChallengeApplication";
+import SponsorDashboard from "./pages/SponsorDashboard";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +28,11 @@ const App = () => (
             <Route path="/" element={<Home />} />
             <Route path="/challenges" element={<Challenges />} />
             <Route path="/challenges/:id" element={<ChallengeDetails />} />
+            <Route path="/challenges/:id/apply" element={<ChallengeApplication />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/sponsor" element={<SponsorDashboard />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
